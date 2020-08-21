@@ -38,14 +38,9 @@ FOR /F "usebackq tokens=3*" %%A IN (`REG QUERY "HKLM\SOFTWARE\WOW6432Node\Oculus
 if "%oculusdir:~-1%" EQU " " (
     set oculusdir=%oculusdir:~0,-1%
 )
-:: Copy Oculus software
-Xcopy /E "%oculusdir%" "%cd%\Oculus\" 
-:: Backup AppData
-Xcopy /E "%appdata%\..\Local\Oculus\" "%cd%\appdata\Local\Oculus\" 
-Xcopy /E "%appdata%\Oculus\" "%cd%\appdata\Roaming\Oculus\"
-:: Backup Registry entries
-mkdir "%cd%\registry"
-reg export "HKLM\SOFTWARE\WOW6432Node\Oculus VR, LLC" "%cd%\registry\oculus.reg"
-reg export "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Oculus" "%cd%\registry\uninstall.reg"
+:: Execute oculus uninstaller
+"%oculusdir%OculusSetup.exe" /uninstall
+:: Restore hosts file
+copy "%cd%\hosts" "%windir%\System32\drivers\etc\hosts" /y
 
 PAUSE

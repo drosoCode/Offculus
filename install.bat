@@ -30,22 +30,45 @@ if '%errorlevel%' NEQ '0' (
     CD /D "%~dp0"
 :--------------------------------------    
 
+:: Restore registry entries
+regedit /s "%cd%\registry\oculus.reg"
+regedit /s "%cd%\registry\uninstall.reg"
+:: Get install dir from registry
+FOR /F "usebackq tokens=3*" %%A IN (`REG QUERY "HKLM\SOFTWARE\WOW6432Node\Oculus VR, LLC\Oculus" /v Base`) DO (
+    set oculusdir=%%A %%B
+)
+:: Remove blank space at the end, if present
+if "%oculusdir:~-1%" EQU " " (
+    set oculusdir=%oculusdir:~0,-1%
+)
+:: Ask for install dir
+set /p installpath="Install Path [ENTER for %oculusdir%]:"
+if "%installpath%" EQU "" (
+    set installpath=%oculusdir%
+) else (
+    :: If not default install dir, replace install dir in registry
+    reg add "HKLM\SOFTWARE\WOW6432Node\Oculus VR, LLC\Oculus" /t REG_SZ /v Base /f /d "%installpath%\"
+    reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Oculus" /t REG_EXPAND_SZ /v DisplayIcon /f /d "%installpath%OculusSetup.exe"
+    reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Oculus" /t REG_EXPAND_SZ /v InstallLocation /f /d "%installpath%\"
+    reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Oculus" /t REG_EXPAND_SZ /v ModifyPath /f /d "%installpath%OculusSetup.exe /repair"
+    reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Oculus" /t REG_EXPAND_SZ /v UninstallString /f /d "%installpath%OculusSetup.exe /uninstall"
+)
 :: Copy Oculus software
-Xcopy /E "%cd%\Oculus" "C:\Program Files\Oculus\"
-:: Add registry entries
-regedit /s oculus.reg
+Xcopy /E "%cd%\Oculus" "%installpath%\" /y
 :: Restore AppData backup
-Xcopy /E "%cd%\appdata\Local\Oculus" "%appdata%\..\Local\Oculus\"
-Xcopy /E "%cd%\appdata\Roaming\Oculus" "%appdata%\Oculus\"
+Xcopy /E "%cd%\appdata\Local\Oculus" "%appdata%\..\Local\Oculus\" /y
+Xcopy /E "%cd%\appdata\Roaming\Oculus" "%appdata%\Oculus\" /y
 :: Install Drivers
-"C:\Program Files\Oculus\Support\oculus-drivers\oculus-driver.exe"
+"%installpath%Support\oculus-drivers\oculus-driver.exe"
 :: Add Environment Variables
-setx /M PATH "%PATH%;C:\Program Files\Oculus\Support\oculus-runtime"
-setx /M OculusBase "C:\Program Files\Oculus"
+setx /M PATH "%PATH%;%installpath%Support\oculus-runtime"
+setx /M OculusBase "%installpath%\"
 :: Install OVRService
-"C:\Program Files\Oculus\Support\oculus-runtime\OVRServiceLauncher.exe" -install -start
+"%installpath%Support\oculus-runtime\OVRServiceLauncher.exe" -install -start
 :: Set OVRService start to manual
 sc config OVRService start=demand
+:: Backup hosts file
+copy "%windir%\System32\drivers\etc\hosts" "%cd%\hosts"
 :: Block facebook and oculus services
 echo 127.0.0.1 graph.oculus.com >> "%windir%\System32\drivers\etc\hosts"
 echo 127.0.0.1 edge-mqtt.facebook.com >> "%windir%\System32\drivers\etc\hosts"
