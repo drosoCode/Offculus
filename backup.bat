@@ -39,10 +39,10 @@ if "%oculusdir:~-1%" EQU " " (
     set oculusdir=%oculusdir:~0,-1%
 )
 :: Copy Oculus software
-Xcopy /E "%oculusdir%" "%cd%\Oculus\" 
+Xcopy /E "%oculusdir%." "%cd%\Oculus\" /y
 :: Backup AppData
-Xcopy /E "%appdata%\..\Local\Oculus\" "%cd%\appdata\Local\Oculus\" 
-Xcopy /E "%appdata%\Oculus\" "%cd%\appdata\Roaming\Oculus\"
+Xcopy /E "%appdata%\..\Local\Oculus" "%cd%\appdata\Local\Oculus\" /y
+Xcopy /E "%appdata%\Oculus" "%cd%\appdata\Roaming\Oculus\" /y
 :: Backup Registry entries
 mkdir "%cd%\registry"
 reg export "HKLM\SOFTWARE\WOW6432Node\Oculus VR, LLC" "%cd%\registry\oculus.reg"
