@@ -54,7 +54,7 @@ if "%installpath%" EQU "" (
     reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Oculus" /t REG_EXPAND_SZ /v UninstallString /f /d "%installpath%OculusSetup.exe /uninstall"
 )
 :: Copy Oculus software
-Xcopy /E "%cd%\Oculus" "%installpath%\" /y
+Xcopy /E "%cd%\Oculus" "%installpath%" /y
 :: Restore AppData backup
 Xcopy /E "%cd%\appdata\Local\Oculus" "%appdata%\..\Local\Oculus\" /y
 Xcopy /E "%cd%\appdata\Roaming\Oculus" "%appdata%\Oculus\" /y
